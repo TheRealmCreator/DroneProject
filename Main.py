@@ -27,10 +27,8 @@ COLOR_RANGES = {
 }
 
 # For cooldown (so it doesn't write every frame)
-DETECTION_COOLDOWN = 5  # seconds
+DETECTION_COOLDOWN = 15  # seconds
 last_detected_time = defaultdict(lambda: 0)
-color_detection_enabled = False
-color_detection_start_time = None
 
 # Start the video stream
 tello.streamon()
@@ -63,30 +61,6 @@ while running:
         frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
         hsv = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2HSV)
         current_time = time.time()
-
-        if color_detection_enabled and color_detection_start_time and (time.time() - color_detection_start_time > 3):  # 3 seconds delay
-            hsv = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2HSV)
-            current_time = time.time()
-
-            for color, ranges in COLOR_RANGES.items():
-                mask_total = None
-
-                for lower, upper in ranges:
-                    lower_np = np.array(lower)
-                    upper_np = np.array(upper)
-                    mask = cv2.inRange(hsv, lower_np, upper_np)
-                    mask_total = mask if mask_total is None else cv2.bitwise_or(mask_total, mask)
-
-                pixels = cv2.countNonZero(mask_total)
-
-                if pixels > 500 and (current_time - last_detected_time[color]) > DETECTION_COOLDOWN:
-                    print(f"{color.capitalize()} detected!")
-
-                    # Write to file without spamming
-                    with open("detected_colors.txt", "a") as file:
-                        file.write(f"{color}\n")
-
-                    last_detected_time[color] = current_time
 
         for color, ranges in COLOR_RANGES.items():
             mask_total = None

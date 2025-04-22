@@ -1,12 +1,4 @@
 # DroneProject
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 This project allows you to control a DJI Tello drone using a keyboard, while also detecting specific colors in the live camera feed. When a color is detected, the program logs the detected color to a file. The system also enables you to toggle color detection on and off with a keybind.
 
 Features:
@@ -111,11 +103,3 @@ Push your changes:
 
 git push origin feature/your-feature-name
 Submit a pull request to the main repository.
-
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
