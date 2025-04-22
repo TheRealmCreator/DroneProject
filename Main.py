@@ -2,6 +2,8 @@ import pygame
 from djitellopy import Tello
 import cv2
 import time
+import numpy as np
+from collections import defaultdict
 
 # Initialize pygame for capturing keyboard inputs
 pygame.init()
@@ -15,6 +17,19 @@ tello.connect()
 # Check battery status
 print(f"Battery: {tello.get_battery()}%")
 
+COLOR_RANGES = {
+    "red": [((0, 120, 70), (10, 255, 255)), ((170, 120, 70), (180, 255, 255))],
+    "orange": [((10, 100, 20), (25, 255, 255))],
+    "yellow": [((25, 100, 100), (35, 255, 255))],
+    "green": [((36, 50, 70), (89, 255, 255))],
+    "blue": [((90, 50, 70), (128, 255, 255))],
+    "purple": [((129, 50, 70), (158, 255, 255))]
+}
+
+# For cooldown (so it doesn't write every frame)
+DETECTION_COOLDOWN = 15  # seconds
+last_detected_time = defaultdict(lambda: 0)
+
 # Start the video stream
 tello.streamon()
 
@@ -24,7 +39,7 @@ pygame.display.set_caption("Tello Manual Control")
 
 # Control variables
 running = True
-speed = 50  # Speed level (0-100)
+speed = 50
 
 # Start controlling the drone
 tello.takeoff()
@@ -44,6 +59,28 @@ while running:
         # Resize the frame to fit in the Pygame window size
         frame_resized = cv2.resize(frame, (640, 480))
         frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
+        hsv = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2HSV)
+        current_time = time.time()
+
+        for color, ranges in COLOR_RANGES.items():
+            mask_total = None
+
+            for lower, upper in ranges:
+                lower_np = np.array(lower)
+                upper_np = np.array(upper)
+                mask = cv2.inRange(hsv, lower_np, upper_np)
+                mask_total = mask if mask_total is None else cv2.bitwise_or(mask_total, mask)
+
+            pixels = cv2.countNonZero(mask_total)
+
+            if pixels > 500 and (current_time - last_detected_time[color]) > DETECTION_COOLDOWN:
+                print(f"{color.capitalize()} detected!")
+
+                # Write to file without spamming
+                with open("detected_colors.txt", "a") as file:
+                    file.write(f"{color}\n")
+
+                last_detected_time[color] = current_time
 
         # Convert the frame to a surface for displaying with pygame
         frame_surface = pygame.surfarray.make_surface(frame_rgb)
@@ -93,14 +130,8 @@ while running:
     # Emergency landing (press 'L' to land)
     if keys[pygame.K_l]:
         tello.land()
-    
-    if keys[pygame.K_SPACE]:
-        # Capture and save the image
-        timestamp = time.strftime("%Y%m%d-%H%M%S")  # Timestamp for uniqueness
-        cv2.imwrite(f"tello_picture_{timestamp}.jpg", frame)
-        print(f"Picture saved as tello_picture_{timestamp}.jpg")
         
-    # Exit the program (press 'ESC' to quit)
+       # Exit the program (press 'ESC' to quit)
     if keys[pygame.K_ESCAPE]:
         running = False
 
