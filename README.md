@@ -7,7 +7,7 @@ Manual drone control with the keyboard.
 
 Color detection for specific colors in the camera feed (e.g., red, green, blue).
 
-Logs detected colors to a text file, avoiding repeated detections in a short time.
+Logs detected colors to a text file, avoiding repeated detections through a manual controlled color detection and a delay between each color detected.
 
 Supports toggling color detection with a keybind.
 
@@ -69,6 +69,8 @@ H: Flip left.
 K: Flip right.
 
 L: Emergency landing.
+
+C: Color Detection.
 
 Esc: Quit the program.
 
